@@ -15,21 +15,12 @@ public class SwiftSaverGalleryPlugin: NSObject, FlutterPlugin {
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
       self.result = result
-      if call.method == "saveImageToGallery" {
-        let arguments = call.arguments as? [String: Any] ?? [String: Any]()
-        guard let imageData = (arguments["imageBytes"] as? FlutterStandardTypedData)?.data,
-            let image = UIImage(data: imageData),
-            let quality = arguments["quality"] as? Int,
-            let _ = arguments["name"]
-            else { return }
-        let newImage = image.jpegData(compressionQuality: CGFloat(quality / 100))!
-        saveImage(UIImage(data: newImage) ?? image)
-      } else if (call.method == "saveFileToGallery") {
+      if (call.method == "saveFileToGallery") {
         guard let arguments = call.arguments as? [String: Any],
               let path = arguments["path"] as? String
               else { return }
         if (isImageFile(filename: path)) {
-            saveImageAtFileUrl(path)
+            saveImage(path)
         } else {
             if (UIVideoAtPathIsCompatibleWithSavedPhotosAlbum(path)) {
                 saveVideo(path)
@@ -59,27 +50,7 @@ public class SwiftSaverGalleryPlugin: NSObject, FlutterPlugin {
         })
     }
 
-    func saveImage(_ image: UIImage) {
- 
-        var imageIds: [String] = []
-
-        PHPhotoLibrary.shared().performChanges( {
-            let req = PHAssetChangeRequest.creationRequestForAsset(from: image)
-            if let imageId = req.placeholderForCreatedAsset?.localIdentifier {
-                imageIds.append(imageId)
-            }
-        }, completionHandler: { [unowned self] (success, error) in
-            DispatchQueue.main.async {
-                if (success && imageIds.count > 0) {
-                    self.saveResult(isSuccess: true)
-                } else {
-                    self.saveResult(isSuccess: false, error: self.errorMessage)
-                }
-            }
-        })
-    }
-
-    func saveImageAtFileUrl(_ url: String) {
+    func saveImage(_ url: String) {
   
         var imageIds: [String] = []
 
@@ -126,11 +97,6 @@ public class SwiftSaverGalleryPlugin: NSObject, FlutterPlugin {
             || filename.hasSuffix(".GIF")
             || filename.hasSuffix(".heic")
             || filename.hasSuffix(".HEIC")
-    }
-    
-    func isImageGifFile(filename: String) -> Bool {
-        return filename.hasSuffix(".gif")
-        || filename.hasSuffix(".GIF")
     }
 }
 

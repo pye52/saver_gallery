@@ -100,18 +100,17 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   _requestPermission() async {
-    bool statuses;
+    bool storageStatuses;
     if (Platform.isAndroid) {
       final deviceInfoPlugin = DeviceInfoPlugin();
       final deviceInfo = await deviceInfoPlugin.androidInfo;
       final sdkInt = deviceInfo.version.sdkInt;
-      statuses =
+      storageStatuses =
           sdkInt < 29 ? await Permission.storage.request().isGranted : true;
-      // statuses = await Permission.storage.request().isGranted;
     } else {
-      statuses = await Permission.photosAddOnly.request().isGranted;
+      storageStatuses = await Permission.photosAddOnly.request().isGranted;
     }
-    _toastInfo('requestPermission result: ${statuses}');
+    _toastInfo('requestPermission result: ${storageStatuses}');
   }
 
   _saveScreen() async {
@@ -121,41 +120,30 @@ class _MyHomePageState extends State<MyHomePage> {
     ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     if (byteData != null) {
       String picturesPath = "${DateTime.now().millisecondsSinceEpoch}.jpg";
-      final result = await SaverGallery.saveImage(byteData.buffer.asUint8List(),
-          name: picturesPath, androidExistNotSave: false);
+      final result = await SaverGallery.saveFile(path: picturesPath);
       debugPrint(result.toString());
       _toastInfo(result.toString());
     }
   }
 
   _getHttp() async {
-    var response = await Dio().get(
+    await Dio().get(
         "https://ss0.baidu.com/94o3dSag_xI4khGko9WTAnF6hhy/image/h%3D300/sign=a62e824376d98d1069d40a31113eb807/838ba61ea8d3fd1fc9c7b6853a4e251f94ca5f46.jpg",
         options: Options(responseType: ResponseType.bytes));
     String picturesPath = "test_jpg.jpg";
     debugPrint(picturesPath);
-    final result = await SaverGallery.saveImage(
-        Uint8List.fromList(response.data),
-        quality: 60,
-        name: picturesPath,
-        androidRelativePath: "Pictures/aa/bb",
-        androidExistNotSave: true);
+    final result = await SaverGallery.saveFile(path: picturesPath);
     debugPrint(result.toString());
     _toastInfo("$result");
   }
 
   _saveGif() async {
-    var response = await Dio().get(
+    await Dio().get(
         "https://hyjdoc.oss-cn-beijing.aliyuncs.com/hyj-doc-flutter-demo-run.gif",
         options: Options(responseType: ResponseType.bytes));
     String picturesPath = "test_jpg";
     debugPrint(picturesPath);
-    final result = await SaverGallery.saveImage(
-        Uint8List.fromList(response.data),
-        quality: 60,
-        name: picturesPath,
-        androidRelativePath: "Pictures/appName/xx",
-        androidExistNotSave: false);
+    final result = await SaverGallery.saveFile(path: picturesPath);
     debugPrint(result.toString());
     _toastInfo("$result");
   }
@@ -177,7 +165,7 @@ class _MyHomePageState extends State<MyHomePage> {
         debugPrint((count / total * 100).toStringAsFixed(0) + "%");
       },
     );
-    final result = await SaverGallery.saveFile(file: savePath,androidExistNotSave: true, name: '123.mp4',androidRelativePath: "Movies");
+    final result = await SaverGallery.saveFile(path: savePath);
     debugPrint(result.toString());
     _toastInfo("$result");
   }
